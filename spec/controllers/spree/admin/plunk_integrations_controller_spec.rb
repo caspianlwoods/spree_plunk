@@ -39,6 +39,8 @@ RSpec.describe Spree::Admin::IntegrationsController, type: :controller do
         expect(response).to render_template(:new)
         expect(response.body).to include('Inbound unsubscribe webhook')
         expect(response.body).to include('after you save this connection')
+        expect(response.body.scan('data-controller="password-visibility"').size).to eq(2)
+        expect(response.body.scan('data-password-visibility-target="input"').size).to eq(2)
       end
     end
   end

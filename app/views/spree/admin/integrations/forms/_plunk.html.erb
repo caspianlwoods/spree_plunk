@@ -26,7 +26,14 @@
       form,
       "plunk_secret_api_key",
       i18n_scope: "admin.integrations.plunk",
-    ) %>
+    ) unless @integration.new_record? %>
+    <%= render(
+      "spree/admin/integrations/forms/plunk_password_field",
+      form: form,
+      field: :preferred_plunk_secret_api_key,
+      label: Spree.t("plunk_secret_api_key", scope: "admin.integrations.plunk"),
+      required: true
+    ) if @integration.new_record? %>
     <p class="mb-0 mt-n2">
       Required for server-side contact upserts and event tracking. Paste a Plunk secret server key for this workspace;
       public or browser-side keys will fail the connection test.
@@ -115,7 +122,14 @@
       form,
       "unsubscribe_webhook_authorization_token",
       i18n_scope: "admin.integrations.plunk",
-    ) %>
+    ) unless @integration.new_record? %>
+    <%= render(
+      "spree/admin/integrations/forms/plunk_password_field",
+      form: form,
+      field: :preferred_unsubscribe_webhook_authorization_token,
+      label: Spree.t("unsubscribe_webhook_authorization_token", scope: "admin.integrations.plunk"),
+      required: false
+    ) if @integration.new_record? %>
     <p class="mb-0 mt-n2">
       Required when the webhook is enabled. Send the same value as an <code>Authorization</code> header in Plunk using
       the format <code>Bearer your-secret-token</code>. The intake only accepts unsubscribe semantics and is designed to
