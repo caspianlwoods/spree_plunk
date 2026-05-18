@@ -20,6 +20,8 @@ module SpreePlunk
 
     def resolved_subscription_state(user:, subscriber:, subscribed:)
       return subscribed unless subscribed.nil?
+      return subscriber.accepts_email_marketing if subscriber&.respond_to?(:accepts_email_marketing)
+      return user.accepts_email_marketing if user&.respond_to?(:accepts_email_marketing)
 
       false
     end

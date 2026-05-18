@@ -88,7 +88,12 @@ module SpreePlunk
     end
 
     def subscription_state_for(event_name)
-      event_name == SpreePlunk::EventNames::NEWSLETTER_SUBSCRIBED
+      case event_name
+      when SpreePlunk::EventNames::NEWSLETTER_SUBSCRIBED
+        true
+      when SpreePlunk::EventNames::NEWSLETTER_UNSUBSCRIBED
+        false
+      end
     end
 
     def failure_result(reason, error_message:, retryable:)

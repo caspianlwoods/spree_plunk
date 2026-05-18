@@ -22,21 +22,21 @@ RSpec.describe SpreePlunk::TrackEvent do
   let(:contact_result) { Spree::ServiceModule::Result.new(true, { 'id' => 'cnt_123' }) }
   let(:event_name) { SpreePlunk::EventNames::ORDER_COMPLETED }
   let(:email) { nil }
-  let(:user) { create(:user, email: 'buyer@example.com') }
+  let(:user) { create(:user, email: 'buyer@example.com', accepts_email_marketing: true) }
   let(:resource) { create(:completed_order_with_totals, store: store, user: user, email: user.email) }
 
   before do
     allow(SpreePlunk::UpsertContact).to receive(:call).and_return(contact_result)
   end
 
-  it 'ensures the contact exists without implicitly subscribing it' do
+  it 'reuses the customer marketing consent when ensuring the contact exists' do
     expect(SpreePlunk::UpsertContact).to receive(:call).with(
       hash_including(
         plunk_integration: plunk_integration,
         user: resource.user,
         address: resource.bill_address,
         email: resource.email,
-        subscribed: false
+        subscribed: nil
       )
     ).and_return(contact_result)
 
@@ -58,14 +58,14 @@ RSpec.describe SpreePlunk::TrackEvent do
       end
     end
 
-    it 'builds shipment payload details after ensuring an unsubscribed contact exists' do
+    it 'builds shipment payload details without overriding the customer consent state' do
       expect(SpreePlunk::UpsertContact).to receive(:call).with(
         hash_including(
           plunk_integration: plunk_integration,
           user: resource.order.user,
           address: resource.address || resource.order.bill_address || resource.order.ship_address,
           email: resource.order.email,
-          subscribed: false
+          subscribed: nil
         )
       ).and_return(contact_result)
 
@@ -95,14 +95,14 @@ RSpec.describe SpreePlunk::TrackEvent do
       end
     end
 
-    it 'builds reimbursement payload details after ensuring an unsubscribed contact exists' do
+    it 'builds reimbursement payload details without overriding the customer consent state' do
       expect(SpreePlunk::UpsertContact).to receive(:call).with(
         hash_including(
           plunk_integration: plunk_integration,
           user: resource.order.user,
           address: resource.order.bill_address || resource.order.ship_address,
           email: resource.order.email,
-          subscribed: false
+          subscribed: nil
         )
       ).and_return(contact_result)
 
@@ -135,6 +135,25 @@ RSpec.describe SpreePlunk::TrackEvent do
           subscriber: resource,
           email: 'newsletter@example.com',
           subscribed: true
+        )
+      ).and_return(contact_result)
+
+      expect(plunk_integration).to receive(:track_event).and_return(track_result)
+
+      expect(result).to be_success
+    end
+  end
+
+  context 'when tracking a newsletter unsubscribe event' do
+    let(:event_name) { SpreePlunk::EventNames::NEWSLETTER_UNSUBSCRIBED }
+    let(:resource) { { 'email' => 'newsletter@example.com' } }
+    let(:email) { 'newsletter@example.com' }
+
+    it 'forces the ensured contact into an unsubscribed state before tracking' do
+      expect(SpreePlunk::UpsertContact).to receive(:call).with(
+        hash_including(
+          email: 'newsletter@example.com',
+          subscribed: false
         )
       ).and_return(contact_result)
 

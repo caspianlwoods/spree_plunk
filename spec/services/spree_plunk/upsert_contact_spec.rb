@@ -20,15 +20,36 @@ RSpec.describe SpreePlunk::UpsertContact do
     )
   end
 
-  it 'upserts the contact without implicitly subscribing the user' do
+  it 'uses the customer email marketing flag as the contact subscription state' do
     expect(plunk_integration).to receive(:upsert_contact).with(
       hash_including(
         email: 'user@example.com',
-        subscribed: false
+        subscribed: true
       )
     ).and_return(service_result)
 
     expect(result).to be_success
+  end
+
+  context 'when the user has not accepted email marketing' do
+    let(:user) do
+      create(
+        :user_with_addresses,
+        email: 'user@example.com',
+        accepts_email_marketing: false
+      )
+    end
+
+    it 'keeps the contact unsubscribed' do
+      expect(plunk_integration).to receive(:upsert_contact).with(
+        hash_including(
+          email: 'user@example.com',
+          subscribed: false
+        )
+      ).and_return(service_result)
+
+      expect(result).to be_success
+    end
   end
 
   context 'when no email can be resolved' do
