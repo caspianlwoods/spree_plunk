@@ -18,6 +18,8 @@ module Spree
       preference :plunk_public_api_key, :string
       preference :default_from_email, :string
       preference :default_from_name, :string
+      preference :unsubscribe_webhook_enabled, :boolean, default: false
+      preference :unsubscribe_webhook_authorization_token, :password
 
       before_validation :normalize_preferences
 
@@ -25,6 +27,7 @@ module Spree
       validates :preferred_plunk_base_url, length: { maximum: MAX_URL_LENGTH }, allow_blank: true
       validates :preferred_plunk_secret_api_key, length: { maximum: MAX_API_KEY_LENGTH }, allow_blank: true
       validates :preferred_plunk_public_api_key, length: { maximum: MAX_API_KEY_LENGTH }, allow_blank: true
+      validates :preferred_unsubscribe_webhook_authorization_token, length: { maximum: MAX_API_KEY_LENGTH }, allow_blank: true
       validates :preferred_default_from_email, length: { maximum: MAX_SENDER_EMAIL_LENGTH }, allow_blank: true,
                                                       format: { with: URI::MailTo::EMAIL_REGEXP, message: :invalid_email_address }
       validates :preferred_default_from_name, length: { maximum: MAX_SENDER_NAME_LENGTH }, allow_blank: true
@@ -32,6 +35,7 @@ module Spree
       validate :validate_plunk_base_url
       validate :validate_api_keys
       validate :validate_sender_defaults
+      validate :validate_unsubscribe_webhook_preferences
 
       def self.integration_group
         'marketing'
@@ -86,6 +90,7 @@ module Spree
         self.preferred_plunk_base_url = normalize_string(preferred_plunk_base_url)&.sub(%r{/*\z}, '')
         self.preferred_plunk_secret_api_key = normalize_string(preferred_plunk_secret_api_key)
         self.preferred_plunk_public_api_key = normalize_string(preferred_plunk_public_api_key)
+        self.preferred_unsubscribe_webhook_authorization_token = normalize_string(preferred_unsubscribe_webhook_authorization_token)
         self.preferred_default_from_email = normalize_string(preferred_default_from_email)&.downcase
         self.preferred_default_from_name = normalize_string(preferred_default_from_name)
       end
@@ -115,6 +120,7 @@ module Spree
       def validate_api_keys
         validate_key_whitespace(:preferred_plunk_secret_api_key)
         validate_key_whitespace(:preferred_plunk_public_api_key)
+        validate_key_whitespace(:preferred_unsubscribe_webhook_authorization_token)
       end
 
       def validate_key_whitespace(attribute)
@@ -127,6 +133,13 @@ module Spree
         return unless preferred_default_from_name.present? && preferred_default_from_email.blank?
 
         errors.add(:preferred_default_from_email, :required_when_sender_name_present)
+      end
+
+      def validate_unsubscribe_webhook_preferences
+        return unless preferred_unsubscribe_webhook_enabled
+        return if preferred_unsubscribe_webhook_authorization_token.present?
+
+        errors.add(:preferred_unsubscribe_webhook_authorization_token, :blank)
       end
 
       def endpoint_path?(path)

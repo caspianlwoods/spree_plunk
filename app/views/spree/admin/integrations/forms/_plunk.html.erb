@@ -84,3 +84,37 @@
     </p>
   </div>
 </div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h3 class="h6 mb-3">Inbound unsubscribe webhook</h3>
+
+    <div class="alert alert-warning mt-n1">
+      Default off. Enable this only if you want Plunk <code>contact.unsubscribed</code> workflow events to write back into
+      Spree and clear local newsletter consent by email.
+    </div>
+
+    <%= preference_field(
+      @integration,
+      form,
+      "unsubscribe_webhook_enabled",
+      i18n_scope: "admin.integrations.plunk",
+    ) %>
+    <p class="mb-4 mt-n2">
+      When enabled, configure a dedicated Plunk workflow webhook for <code>contact.unsubscribed</code> and send it to
+      <code><%= plunk_unsubscribe_webhook_path(@integration) %></code>.
+    </p>
+
+    <%= preference_field(
+      @integration,
+      form,
+      "unsubscribe_webhook_authorization_token",
+      i18n_scope: "admin.integrations.plunk",
+    ) %>
+    <p class="mb-0 mt-n2">
+      Required when the webhook is enabled. Send the same value as an <code>Authorization</code> header in Plunk using
+      the format <code>Bearer your-secret-token</code>. The intake only accepts unsubscribe semantics and is designed to
+      no-op safely when the email cannot be matched locally.
+    </p>
+  </div>
+</div>

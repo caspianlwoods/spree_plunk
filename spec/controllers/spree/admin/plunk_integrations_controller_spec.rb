@@ -38,6 +38,9 @@ RSpec.describe Spree::Admin::IntegrationsController, type: :controller do
         expect(response.body).to include('Do not paste a specific endpoint like')
         expect(response.body).to include('Optional sender defaults')
         expect(response.body).to include('The Public API Key is optional and intentionally unused by the current server-side MVP.')
+        expect(response.body).to include('Inbound unsubscribe webhook')
+        expect(response.body).to include('contact.unsubscribed')
+        expect(response.body).to include('/plunk/webhooks/unsubscribe/')
       end
     end
   end

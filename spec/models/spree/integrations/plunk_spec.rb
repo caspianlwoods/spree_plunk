@@ -17,6 +17,7 @@ RSpec.describe Spree::Integrations::Plunk, type: :model do
         preferred_plunk_base_url: ' https://plunk.example.com/api/ ',
         preferred_plunk_secret_api_key: " sk_test_123 \n",
         preferred_plunk_public_api_key: ' pk_test_123 ',
+        preferred_unsubscribe_webhook_authorization_token: ' whsec_test_123 ',
         preferred_default_from_email: ' Marketing@Example.com ',
         preferred_default_from_name: ' Example Store '
       )
@@ -27,6 +28,7 @@ RSpec.describe Spree::Integrations::Plunk, type: :model do
         expect(integration.preferred_plunk_base_url).to eq('https://plunk.example.com/api')
         expect(integration.preferred_plunk_secret_api_key).to eq('sk_test_123')
         expect(integration.preferred_plunk_public_api_key).to eq('pk_test_123')
+        expect(integration.preferred_unsubscribe_webhook_authorization_token).to eq('whsec_test_123')
         expect(integration.preferred_default_from_email).to eq('marketing@example.com')
         expect(integration.preferred_default_from_name).to eq('Example Store')
       end
@@ -64,6 +66,18 @@ RSpec.describe Spree::Integrations::Plunk, type: :model do
 
       expect(integration).not_to be_valid
       expect(integration.errors[:preferred_plunk_secret_api_key]).to include('must not contain spaces or line breaks')
+    end
+
+    it 'requires a webhook authorization token when the unsubscribe intake is enabled' do
+      integration = build(
+        :plunk_integration,
+        store: store,
+        preferred_unsubscribe_webhook_enabled: true,
+        preferred_unsubscribe_webhook_authorization_token: ''
+      )
+
+      expect(integration).not_to be_valid
+      expect(integration.errors[:preferred_unsubscribe_webhook_authorization_token]).to include("can't be blank")
     end
   end
 

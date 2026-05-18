@@ -7,6 +7,8 @@ en:
         preferred_plunk_public_api_key: Public API Key
         preferred_default_from_email: Default Sender Email
         preferred_default_from_name: Default Sender Name
+        preferred_unsubscribe_webhook_enabled: Enable Unsubscribe Webhook
+        preferred_unsubscribe_webhook_authorization_token: Unsubscribe Webhook Authorization Token
     errors:
       models:
         spree/integrations/plunk:
@@ -21,6 +23,8 @@ en:
               whitespace_not_allowed: must not contain spaces or line breaks
             preferred_plunk_public_api_key:
               whitespace_not_allowed: must not contain spaces or line breaks
+            preferred_unsubscribe_webhook_authorization_token:
+              whitespace_not_allowed: must not contain spaces or line breaks
             preferred_default_from_email:
               invalid_email_address: must be a valid email address
               required_when_sender_name_present: is required when Default Sender Name is set
@@ -34,3 +38,5 @@ en:
           plunk_public_api_key: Public API Key
           default_from_email: Default Sender Email
           default_from_name: Default Sender Name
+          unsubscribe_webhook_enabled: Enable Unsubscribe Webhook
+          unsubscribe_webhook_authorization_token: Unsubscribe Webhook Authorization Token
