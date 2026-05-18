@@ -1,0 +1,14 @@
+# Configure Rails Environment
+ENV['RAILS_ENV'] = 'test'
+
+require 'dotenv/load'
+require File.expand_path('../dummy/config/environment.rb', __FILE__)
+
+require 'spree_dev_tools/rspec/spec_helper'
+require 'spree_plunk/factories'
+
+RSpec.configure do |config|
+  config.example_status_persistence_file_path = '.rspec_status'
+end
+
+Dir[File.join(File.dirname(__FILE__), 'support/**/*.rb')].sort.each { |path| require path }

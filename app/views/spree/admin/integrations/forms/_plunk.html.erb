@@ -1,0 +1,56 @@
+<div class="alert alert-info">
+  <div>
+    Configure a Plunk secret API key and base URL for either hosted Plunk or a self-hosted deployment.
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <%= preference_field(
+      @integration,
+      form,
+      "plunk_base_url",
+      i18n_scope: "admin.integrations.plunk",
+    ) %>
+    <p class="mb-4 mt-n2">
+      Example: <code>https://next-api.useplunk.com</code> or your self-hosted API origin.
+    </p>
+
+    <%= preference_field(
+      @integration,
+      form,
+      "plunk_secret_api_key",
+      i18n_scope: "admin.integrations.plunk",
+    ) %>
+    <p class="mb-4 mt-n2">
+      The secret key is required for server-side contact sync and event tracking.
+    </p>
+
+    <%= preference_field(
+      @integration,
+      form,
+      "default_from_email",
+      i18n_scope: "admin.integrations.plunk",
+    ) %>
+
+    <%= preference_field(
+      @integration,
+      form,
+      "default_from_name",
+      i18n_scope: "admin.integrations.plunk",
+    ) %>
+
+    <div class="alert alert-secondary mt-4 mb-0">
+      Public API Key is optional and intentionally not required for the MVP server integration.
+    </div>
+
+    <div class="mt-3">
+      <%= preference_field(
+        @integration,
+        form,
+        "plunk_public_api_key",
+        i18n_scope: "admin.integrations.plunk",
+      ) %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,10 @@
+en:
+  spree:
+    admin:
+      integrations:
+        plunk:
+          plunk_base_url: Plunk Base URL
+          plunk_secret_api_key: Secret API Key
+          plunk_public_api_key: Public API Key
+          default_from_email: Default Sender Email
+          default_from_name: Default Sender Name
