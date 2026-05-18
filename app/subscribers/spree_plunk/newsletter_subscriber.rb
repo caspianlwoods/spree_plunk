@@ -1,25 +1,38 @@
 module SpreePlunk
   class NewsletterSubscriber < Spree::Subscriber
-    subscribes_to 'newsletter_subscriber.created', 'newsletter_subscriber.updated', 'newsletter_subscriber.deleted'
+    subscribes_to 'newsletter_subscriber.created', 'newsletter_subscriber.verified', 'newsletter_subscriber.deleted'
 
-    on 'newsletter_subscriber.created', :handle_subscriber_sync
-    on 'newsletter_subscriber.updated', :handle_subscriber_sync
+    on 'newsletter_subscriber.created', :handle_subscriber_created
+    on 'newsletter_subscriber.verified', :handle_subscriber_verified
     on 'newsletter_subscriber.deleted', :handle_subscriber_deletion
 
     private
 
-    def handle_subscriber_sync(event)
+    def handle_subscriber_created(event)
       subscriber = find_subscriber(event.payload['id'])
       return unless subscriber
 
       integration = plunk_integration(event)
       return unless integration
 
-      if subscriber.accepts_email_marketing
-        SpreePlunk::SubscribeJob.perform_later(integration.id, subscriber.id)
-      else
-        SpreePlunk::UpsertContactJob.perform_later(integration.id, ::Spree::NewsletterSubscriber.name, subscriber.id)
-      end
+      SpreePlunk::UpsertContactJob.perform_later(integration.id, ::Spree::NewsletterSubscriber.name, subscriber.id)
+    end
+
+    def handle_subscriber_verified(event)
+      subscriber = find_subscriber(event.payload['id'])
+      return unless subscriber
+
+      integration = plunk_integration(event)
+      return unless integration
+
+      SpreePlunk::SubscribeJob.perform_later(integration.id, subscriber.id)
+      SpreePlunk::TrackEventJob.perform_later(
+        integration.id,
+        SpreePlunk::EventNames::NEWSLETTER_SUBSCRIBED,
+        ::Spree::NewsletterSubscriber.name,
+        subscriber.id,
+        subscriber.email
+      )
     end
 
     def handle_subscriber_deletion(event)
@@ -30,6 +43,14 @@ module SpreePlunk
       return unless integration
 
       SpreePlunk::UnsubscribeJob.perform_later(integration.id, email)
+      SpreePlunk::TrackEventJob.perform_later(
+        integration.id,
+        SpreePlunk::EventNames::NEWSLETTER_UNSUBSCRIBED,
+        nil,
+        nil,
+        email,
+        event.payload
+      )
     end
 
     def find_subscriber(value)
