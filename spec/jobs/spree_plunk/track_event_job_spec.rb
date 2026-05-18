@@ -8,6 +8,7 @@ RSpec.describe SpreePlunk::TrackEventJob, type: :job do
 
   before do
     clear_enqueued_jobs
+    clear_performed_jobs
   end
 
   it 'reloads shipped shipments before delegating to event tracking' do
@@ -131,6 +132,50 @@ RSpec.describe SpreePlunk::TrackEventJob, type: :job do
           status: 401,
           error_code: 'http_401',
           discarded: true
+        )
+      )
+    )
+  end
+
+  it 'reports retry exhaustion after the final retryable attempt' do
+    error_reporter = instance_double(ActiveSupport::ErrorReporter, report: nil)
+    failure_result = Spree::ServiceModule::Result.new(false, {
+      status: 503,
+      error_message: 'temporarily unavailable',
+      error_code: 'http_503',
+      retryable: true
+    })
+
+    allow(Rails).to receive(:error).and_return(error_reporter)
+    expect(SpreePlunk::TrackEvent).to receive(:call).exactly(5).times.and_return(failure_result)
+
+    perform_enqueued_jobs do
+      described_class.perform_later(
+        integration.id,
+        SpreePlunk::EventNames::ORDER_COMPLETED,
+        nil,
+        nil,
+        'buyer@example.com',
+        { 'email' => 'buyer@example.com' }
+      )
+    end
+
+    expect(error_reporter).to have_received(:report).with(
+      instance_of(SpreePlunk::RetryableSyncError),
+      hash_including(
+        handled: true,
+        source: 'spree.plunk',
+        context: hash_including(
+          operation: 'track_event',
+          integration_id: integration.id,
+          store_id: integration.store_id,
+          event_name: SpreePlunk::EventNames::ORDER_COMPLETED,
+          email_present: true,
+          resource_payload_present: true,
+          status: 503,
+          error_code: 'http_503',
+          retry_exhausted: true,
+          discarded: false
         )
       )
     )
