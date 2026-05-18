@@ -1,8 +1,34 @@
 en:
+  activerecord:
+    attributes:
+      spree/integrations/plunk:
+        preferred_plunk_base_url: Plunk Base URL
+        preferred_plunk_secret_api_key: Secret API Key
+        preferred_plunk_public_api_key: Public API Key
+        preferred_default_from_email: Default Sender Email
+        preferred_default_from_name: Default Sender Name
+    errors:
+      models:
+        spree/integrations/plunk:
+          attributes:
+            base:
+              unable_to_connect: "Unable to connect to Plunk: %{error_message}"
+            preferred_plunk_base_url:
+              invalid_http_url: must be a valid HTTP(S) URL
+              query_or_fragment_not_allowed: must not include a query string or fragment
+              endpoint_path_not_allowed: must be the API base URL, not a specific endpoint path
+            preferred_plunk_secret_api_key:
+              whitespace_not_allowed: must not contain spaces or line breaks
+            preferred_plunk_public_api_key:
+              whitespace_not_allowed: must not contain spaces or line breaks
+            preferred_default_from_email:
+              invalid_email_address: must be a valid email address
+              required_when_sender_name_present: is required when Default Sender Name is set
   spree:
     admin:
       integrations:
         plunk:
+          description: Sync Spree customers and newsletter subscribers to Plunk, and send consent-safe commerce events for workflows and segmentation.
           plunk_base_url: Plunk Base URL
           plunk_secret_api_key: Secret API Key
           plunk_public_api_key: Public API Key

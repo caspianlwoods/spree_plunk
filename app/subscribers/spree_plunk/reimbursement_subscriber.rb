@@ -8,9 +8,11 @@ module SpreePlunk
 
     def handle_reimbursement_reimbursed(event)
       reimbursement = ::Spree::Reimbursement.find_by_param(event.payload['id'])
+      order = reimbursement&.order
+      email = order&.email
       return unless reimbursement
 
-      integration = ::Spree::Integrations::Plunk.find_by(store_id: reimbursement.order.store_id)
+      integration = ::Spree::Integrations::Plunk.find_by(store_id: order&.store_id)
       return unless integration
 
       SpreePlunk::TrackEventJob.perform_later(
@@ -18,7 +20,7 @@ module SpreePlunk
         SpreePlunk::EventNames::REIMBURSEMENT_PAID,
         ::Spree::Reimbursement.name,
         reimbursement.id,
-        reimbursement.order.email
+        email
       )
     end
   end

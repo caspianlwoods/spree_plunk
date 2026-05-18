@@ -47,9 +47,9 @@ module SpreePlunk
       when ::Spree::Order
         resource.user
       when ::Spree::Shipment
-        resource.order.user
+        resource.order&.user
       when ::Spree::Reimbursement
-        resource.order.user
+        resource.order&.user
       end
     end
 
@@ -62,9 +62,9 @@ module SpreePlunk
       when ::Spree::Order
         resource.bill_address || resource.ship_address
       when ::Spree::Shipment
-        resource.address || resource.order.bill_address || resource.order.ship_address
+        resource.address || resource.order&.bill_address || resource.order&.ship_address
       when ::Spree::Reimbursement
-        resource.order.bill_address || resource.order.ship_address
+        resource.order&.bill_address || resource.order&.ship_address
       end
     end
 

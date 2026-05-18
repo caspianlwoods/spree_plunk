@@ -50,6 +50,81 @@ RSpec.describe SpreePlunk::TrackEvent do
     expect(result).to be_success
   end
 
+  context 'when tracking a shipped shipment event' do
+    let(:event_name) { SpreePlunk::EventNames::SHIPMENT_SHIPPED }
+    let(:resource) do
+      create(:shipped_order, store: store, user: user, email: user.email).shipments.first.tap do |shipment|
+        shipment.update_column(:shipped_at, Time.utc(2026, 5, 18, 10, 0, 0))
+      end
+    end
+
+    it 'builds shipment payload details after ensuring an unsubscribed contact exists' do
+      expect(SpreePlunk::UpsertContact).to receive(:call).with(
+        hash_including(
+          plunk_integration: plunk_integration,
+          user: resource.order.user,
+          address: resource.address || resource.order.bill_address || resource.order.ship_address,
+          email: resource.order.email,
+          subscribed: false
+        )
+      ).and_return(contact_result)
+
+      expect(plunk_integration).to receive(:track_event).with(
+        hash_including(
+          name: SpreePlunk::EventNames::SHIPMENT_SHIPPED,
+          contactId: 'cnt_123',
+          data: hash_including(
+            shipment_number: resource.number,
+            tracking: resource.tracking,
+            order_number: resource.order.number,
+            store_code: 'default-store',
+            shipped_at: resource.shipped_at.iso8601
+          )
+        )
+      ).and_return(track_result)
+
+      expect(result).to be_success
+    end
+  end
+
+  context 'when tracking a reimbursement event' do
+    let(:event_name) { SpreePlunk::EventNames::REIMBURSEMENT_PAID }
+    let(:resource) do
+      create(:reimbursement).tap do |reimbursement|
+        reimbursement.order.update!(user: user, email: user.email)
+      end
+    end
+
+    it 'builds reimbursement payload details after ensuring an unsubscribed contact exists' do
+      expect(SpreePlunk::UpsertContact).to receive(:call).with(
+        hash_including(
+          plunk_integration: plunk_integration,
+          user: resource.order.user,
+          address: resource.order.bill_address || resource.order.ship_address,
+          email: resource.order.email,
+          subscribed: false
+        )
+      ).and_return(contact_result)
+
+      expect(plunk_integration).to receive(:track_event).with(
+        hash_including(
+          name: SpreePlunk::EventNames::REIMBURSEMENT_PAID,
+          contactId: 'cnt_123',
+          data: hash_including(
+            reimbursement_number: resource.number,
+            reimbursement_status: resource.reimbursement_status,
+            order_number: resource.order.number,
+            paid_amount: resource.paid_amount.to_f,
+            return_items_count: resource.return_items.size,
+            store_code: 'default-store'
+          )
+        )
+      ).and_return(track_result)
+
+      expect(result).to be_success
+    end
+  end
+
   context 'when tracking a newsletter subscription event' do
     let(:event_name) { SpreePlunk::EventNames::NEWSLETTER_SUBSCRIBED }
     let(:resource) { create(:newsletter_subscriber, :verified, email: 'newsletter@example.com') }

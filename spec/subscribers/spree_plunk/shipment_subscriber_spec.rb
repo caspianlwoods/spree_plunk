@@ -29,4 +29,18 @@ RSpec.describe SpreePlunk::ShipmentSubscriber do
       shipment.order.email
     )
   end
+
+  it 'skips tracking when the shipment no longer has an order' do
+    orderless_shipment = instance_double(Spree::Shipment, id: 42, order: nil)
+    event = Spree::Event.new(
+      name: 'shipment.shipped',
+      payload: { 'id' => 'ship_test' }
+    )
+
+    allow(Spree::Shipment).to receive(:find_by_param).and_return(orderless_shipment)
+
+    expect {
+      subscriber.send(:handle_shipment_shipped, event)
+    }.not_to have_enqueued_job(SpreePlunk::TrackEventJob)
+  end
 end

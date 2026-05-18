@@ -31,4 +31,18 @@ RSpec.describe SpreePlunk::ReimbursementSubscriber do
       reimbursement.order.email
     )
   end
+
+  it 'skips tracking when the reimbursement no longer has an order' do
+    orderless_reimbursement = instance_double(Spree::Reimbursement, id: 42, order: nil)
+    event = Spree::Event.new(
+      name: 'reimbursement.reimbursed',
+      payload: { 'id' => 'reimb_test' }
+    )
+
+    allow(Spree::Reimbursement).to receive(:find_by_param).and_return(orderless_reimbursement)
+
+    expect {
+      subscriber.send(:handle_reimbursement_reimbursed, event)
+    }.not_to have_enqueued_job(SpreePlunk::TrackEventJob)
+  end
 end
