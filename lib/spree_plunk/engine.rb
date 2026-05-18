@@ -9,6 +9,8 @@ module SpreePlunk
       g.test_framework :rspec
     end
 
+    config.paths.add 'app/subscribers', eager_load: true
+
     initializer 'spree_plunk.environment', before: :load_config_initializers do |_app|
       SpreePlunk::Config = SpreePlunk::Configuration.new
     end

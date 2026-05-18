@@ -1,0 +1,61 @@
+require 'spec_helper'
+
+RSpec.describe SpreePlunk::ContactPresenter do
+  subject(:payload) do
+    described_class.new(
+      user: user,
+      subscriber: subscriber,
+      store: store
+    ).call(subscribed: subscribed)
+  end
+
+  let(:store) { create(:store, code: 'default-store') }
+  let(:subscribed) { false }
+  let(:subscriber) { nil }
+  let(:user) do
+    create(
+      :user_with_addresses,
+      email: 'ada@example.com',
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+      phone: '555-0101',
+      accepts_email_marketing: true
+    )
+  end
+
+  before do
+    user.bill_address.update!(
+      firstname: 'Ada',
+      lastname: 'Lovelace',
+      city: 'New York',
+      zipcode: '10001'
+    )
+  end
+
+  it 'builds a Plunk-compatible contact payload' do
+    expect(payload).to include(
+      email: 'ada@example.com',
+      subscribed: false
+    )
+    expect(payload[:data]).to include(
+      external_user_id: user.id,
+      store_code: 'default-store',
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+      phone: '555-0101',
+      accepts_email_marketing: true,
+      city: 'New York',
+      zip: '10001'
+    )
+  end
+
+  context 'with a newsletter subscriber' do
+    let(:subscriber) { create(:newsletter_subscriber, :verified, user: user, email: 'ada@example.com') }
+    let(:subscribed) { true }
+
+    it 'prefers subscriber-backed marketing state' do
+      expect(payload[:subscribed]).to eq(true)
+      expect(payload[:data][:accepts_email_marketing]).to eq(true)
+    end
+  end
+end
