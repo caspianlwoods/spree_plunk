@@ -6,11 +6,23 @@ module SpreePlunk
 
       resource = load_resource(resource_type, resource_id, resource_payload)
 
-      SpreePlunk::TrackEvent.call(
+      result = SpreePlunk::TrackEvent.call(
         plunk_integration: plunk_integration,
         event_name: event_name,
         resource: resource,
         email: email
+      )
+
+      ensure_sync_success!(
+        result,
+        operation: 'track_event',
+        integration_id: plunk_integration.id,
+        store_id: plunk_integration.store_id,
+        event_name: event_name,
+        resource_type: resource_type,
+        resource_id: resource_id,
+        email_present: email.present?,
+        resource_payload_present: resource_payload.present?
       )
     end
 

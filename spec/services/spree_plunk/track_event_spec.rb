@@ -155,4 +155,20 @@ RSpec.describe SpreePlunk::TrackEvent do
       expect(result.value).to include(skipped: true, reason: 'missing_email')
     end
   end
+
+  context 'when the upserted contact payload does not include an id' do
+    let(:contact_result) { Spree::ServiceModule::Result.new(true, {}) }
+
+    it 'returns a retryable failure so the async job can try again' do
+      expect(plunk_integration).not_to receive(:track_event)
+
+      expect(result).to be_failure
+      expect(result.value).to include(
+        error: 'missing_contact_id',
+        error_code: 'missing_contact_id',
+        retryable: true
+      )
+      expect(result.value[:error_message]).to include('did not return a contact id')
+    end
+  end
 end

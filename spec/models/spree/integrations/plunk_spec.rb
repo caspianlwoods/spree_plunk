@@ -129,4 +129,39 @@ RSpec.describe Spree::Integrations::Plunk, type: :model do
       end
     end
   end
+
+  describe '#track_event' do
+    let(:integration) { build(:plunk_integration, store: store) }
+    let(:payload) { { name: SpreePlunk::EventNames::ORDER_COMPLETED, contactId: 'cnt_123' } }
+
+    it 'marks 5xx API failures as retryable' do
+      stub_request(:post, 'https://next-api.useplunk.com/events/track')
+        .to_return(status: 503, body: '{"error":"temporarily unavailable"}', headers: { 'Content-Type' => 'application/json' })
+
+      result = integration.track_event(payload)
+
+      expect(result).to be_failure
+      expect(result.value).to include(
+        status: 503,
+        error_message: 'temporarily unavailable',
+        error_code: 'http_503',
+        retryable: true
+      )
+    end
+
+    it 'marks authentication failures as non-retryable' do
+      stub_request(:post, 'https://next-api.useplunk.com/events/track')
+        .to_return(status: 401, body: '{"error":"Invalid API key"}', headers: { 'Content-Type' => 'application/json' })
+
+      result = integration.track_event(payload)
+
+      expect(result).to be_failure
+      expect(result.value).to include(
+        status: 401,
+        error_message: 'Invalid API key',
+        error_code: 'http_401',
+        retryable: false
+      )
+    end
+  end
 end

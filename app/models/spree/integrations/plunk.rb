@@ -7,6 +7,7 @@ module Spree
 
       CONNECTION_CHECK_PATH = 'contacts?limit=1'.freeze
       KNOWN_ENDPOINT_PATHS = %w[/contacts /contacts/lookup /events/track /v1/track /v1/send].freeze
+      RETRYABLE_STATUS_CODES = [408, 429].freeze
       MAX_URL_LENGTH = 255
       MAX_API_KEY_LENGTH = 255
       MAX_SENDER_EMAIL_LENGTH = 255
@@ -179,20 +180,33 @@ module Spree
         if result.success?
           Spree::ServiceModule::Result.new(true, result.value[:body])
         else
+          status = result.value[:status]
           error_message = extract_error_message(result.value[:body])
 
-          Rails.error.report(
-            ApiError.new(error_message),
-            context: {
-              integration_id: id,
-              status: result.value[:status],
-              error_message: error_message
-            },
-            source: 'spree.plunk'
-          )
-
-          Spree::ServiceModule::Result.new(false, result.value[:body])
+          Spree::ServiceModule::Result.new(false, {
+            status: status,
+            error_message: error_message,
+            error_code: error_code_for(status: status, error_message: error_message),
+            retryable: retryable_failure?(status: status, error_message: error_message),
+            response_body: result.value[:body]
+          })
         end
+      end
+
+      def retryable_failure?(status:, error_message:)
+        retryable_status?(status) || timeout_error?(error_message) || transport_error?(error_message)
+      end
+
+      def retryable_status?(status)
+        status.to_i >= 500 || RETRYABLE_STATUS_CODES.include?(status)
+      end
+
+      def error_code_for(status:, error_message:)
+        return 'timeout' if timeout_error?(error_message)
+        return 'transport_error' if transport_error?(error_message)
+        return "http_#{status}" if status.present?
+
+        'unknown_error'
       end
 
       def extract_error_message(body)

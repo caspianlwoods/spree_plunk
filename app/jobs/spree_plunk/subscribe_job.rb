@@ -7,9 +7,17 @@ module SpreePlunk
       subscriber = ::Spree::NewsletterSubscriber.find_by(id: subscriber_id)
       return unless subscriber
 
-      SpreePlunk::Subscribe.call(
+      result = SpreePlunk::Subscribe.call(
         plunk_integration: plunk_integration,
         subscriber: subscriber
+      )
+
+      ensure_sync_success!(
+        result,
+        operation: 'subscribe_contact',
+        integration_id: plunk_integration.id,
+        store_id: plunk_integration.store_id,
+        subscriber_id: subscriber_id
       )
     end
   end

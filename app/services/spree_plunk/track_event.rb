@@ -15,7 +15,11 @@ module SpreePlunk
       return contact_result if contact_result.failure?
 
       contact_id = contact_result.value['id']
-      return failure_result('missing_contact_id') if contact_id.blank?
+      return failure_result(
+        'missing_contact_id',
+        error_message: 'Plunk contact upsert succeeded but did not return a contact id.',
+        retryable: true
+      ) if contact_id.blank?
 
       payload = EventPresenter.new(
         event_name: event_name,
@@ -87,8 +91,13 @@ module SpreePlunk
       event_name == SpreePlunk::EventNames::NEWSLETTER_SUBSCRIBED
     end
 
-    def failure_result(reason)
-      ::Spree::ServiceModule::Result.new(false, { error: reason })
+    def failure_result(reason, error_message:, retryable:)
+      ::Spree::ServiceModule::Result.new(false, {
+        error: reason,
+        error_code: reason,
+        error_message: error_message,
+        retryable: retryable
+      })
     end
   end
 end

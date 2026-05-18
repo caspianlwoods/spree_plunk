@@ -4,27 +4,38 @@ module SpreePlunk
       plunk_integration = ::Spree::Integrations::Plunk.find_by(id: plunk_integration_id)
       return unless plunk_integration
 
-      case resource_type
-      when ::Spree::NewsletterSubscriber.name
-        subscriber = ::Spree::NewsletterSubscriber.find_by(id: resource_id)
-        return unless subscriber
+      result =
+        case resource_type
+        when ::Spree::NewsletterSubscriber.name
+          subscriber = ::Spree::NewsletterSubscriber.find_by(id: resource_id)
+          return unless subscriber
 
-        SpreePlunk::UpsertContact.call(
-          plunk_integration: plunk_integration,
-          subscriber: subscriber
-        )
-      when ::Spree.user_class.name
-        user = ::Spree.user_class.find_by(id: resource_id)
-        return unless user
+          SpreePlunk::UpsertContact.call(
+            plunk_integration: plunk_integration,
+            subscriber: subscriber
+          )
+        when ::Spree.user_class.name
+          user = ::Spree.user_class.find_by(id: resource_id)
+          return unless user
 
-        address = ::Spree::Address.find_by(id: address_id) if address_id.present?
+          address = ::Spree::Address.find_by(id: address_id) if address_id.present?
 
-        SpreePlunk::UpsertContact.call(
-          plunk_integration: plunk_integration,
-          user: user,
-          address: address
-        )
-      end
+          SpreePlunk::UpsertContact.call(
+            plunk_integration: plunk_integration,
+            user: user,
+            address: address
+          )
+        end
+
+      ensure_sync_success!(
+        result,
+        operation: 'upsert_contact',
+        integration_id: plunk_integration.id,
+        store_id: plunk_integration.store_id,
+        resource_type: resource_type,
+        resource_id: resource_id,
+        address_id: address_id
+      )
     end
   end
 end

@@ -5,9 +5,17 @@ module SpreePlunk
       return unless plunk_integration
       return if email.blank?
 
-      SpreePlunk::Unsubscribe.call(
+      result = SpreePlunk::Unsubscribe.call(
         plunk_integration: plunk_integration,
         email: email
+      )
+
+      ensure_sync_success!(
+        result,
+        operation: 'unsubscribe_contact',
+        integration_id: plunk_integration.id,
+        store_id: plunk_integration.store_id,
+        email_present: email.present?
       )
     end
   end
