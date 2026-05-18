@@ -88,6 +88,7 @@
 <div class="card mb-4">
   <div class="card-body">
     <h3 class="h6 mb-3">Inbound unsubscribe webhook</h3>
+    <% unsubscribe_webhook_path = @integration.persisted? ? plunk_unsubscribe_webhook_path(@integration) : nil %>
 
     <div class="alert alert-warning mt-n1">
       Default off. Enable this only if you want Plunk <code>contact.unsubscribed</code> workflow events to write back into
@@ -102,7 +103,11 @@
     ) %>
     <p class="mb-4 mt-n2">
       When enabled, configure a dedicated Plunk workflow webhook for <code>contact.unsubscribed</code> and send it to
-      <code><%= plunk_unsubscribe_webhook_path(@integration) %></code>.
+      <% if unsubscribe_webhook_path.present? %>
+        <code><%= unsubscribe_webhook_path %></code>.
+      <% else %>
+        the integration-specific webhook URL shown here after you save this connection.
+      <% end %>
     </p>
 
     <%= preference_field(

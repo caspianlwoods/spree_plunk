@@ -28,6 +28,21 @@ RSpec.describe Spree::Admin::IntegrationsController, type: :controller do
     end
   end
 
+  describe 'GET #new' do
+    it 'renders the webhook guidance without requiring a persisted integration id' do
+      integration.destroy!
+
+      get :new, params: { integration: { type: Spree::Integrations::Plunk.to_s } }
+
+      aggregate_failures do
+        expect(response).to have_http_status(:ok)
+        expect(response).to render_template(:new)
+        expect(response.body).to include('Inbound unsubscribe webhook')
+        expect(response.body).to include('after you save this connection')
+      end
+    end
+  end
+
   describe 'GET #edit' do
     it 'renders operator-facing guidance for the Plunk configuration form' do
       get :edit, params: { id: integration.to_param }
