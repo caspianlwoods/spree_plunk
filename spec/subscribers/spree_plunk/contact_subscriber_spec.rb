@@ -14,6 +14,10 @@ RSpec.describe SpreePlunk::ContactSubscriber do
     clear_enqueued_jobs
   end
 
+  it 'runs synchronously so contact sync only needs the Plunk job queue' do
+    expect(described_class.subscription_options).to eq(async: false)
+  end
+
   it 'enqueues contact upsert for user lifecycle events' do
     event = Spree::Event.new(
       name: 'user.updated',

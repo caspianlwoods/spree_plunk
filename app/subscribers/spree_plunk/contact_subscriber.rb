@@ -1,6 +1,6 @@
 module SpreePlunk
   class ContactSubscriber < Spree::Subscriber
-    subscribes_to 'user.created', 'user.updated', 'address.created', 'address.updated'
+    subscribes_to 'user.created', 'user.updated', 'address.created', 'address.updated', async: false
 
     on 'user.created', :handle_user_event
     on 'user.updated', :handle_user_event

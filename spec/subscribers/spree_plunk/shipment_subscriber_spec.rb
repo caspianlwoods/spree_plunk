@@ -13,6 +13,10 @@ RSpec.describe SpreePlunk::ShipmentSubscriber do
     clear_enqueued_jobs
   end
 
+  it 'runs synchronously so shipment tracking only needs the Plunk job queue' do
+    expect(described_class.subscription_options).to eq(async: false)
+  end
+
   it 'enqueues tracking for shipped shipments' do
     event = Spree::Event.new(
       name: 'shipment.shipped',

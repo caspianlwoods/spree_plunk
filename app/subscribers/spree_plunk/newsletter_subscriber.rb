@@ -1,6 +1,6 @@
 module SpreePlunk
   class NewsletterSubscriber < Spree::Subscriber
-    subscribes_to 'newsletter_subscriber.created', 'newsletter_subscriber.verified', 'newsletter_subscriber.deleted'
+    subscribes_to 'newsletter_subscriber.created', 'newsletter_subscriber.verified', 'newsletter_subscriber.deleted', async: false
 
     on 'newsletter_subscriber.created', :handle_subscriber_created
     on 'newsletter_subscriber.verified', :handle_subscriber_verified

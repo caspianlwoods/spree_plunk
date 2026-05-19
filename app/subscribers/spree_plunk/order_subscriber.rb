@@ -1,6 +1,6 @@
 module SpreePlunk
   class OrderSubscriber < Spree::Subscriber
-    subscribes_to 'order.completed', 'order.canceled'
+    subscribes_to 'order.completed', 'order.canceled', async: false
 
     on 'order.completed', :handle_order_completed
     on 'order.canceled', :handle_order_canceled

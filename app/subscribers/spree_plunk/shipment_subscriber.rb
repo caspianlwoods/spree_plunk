@@ -1,6 +1,6 @@
 module SpreePlunk
   class ShipmentSubscriber < Spree::Subscriber
-    subscribes_to 'shipment.shipped'
+    subscribes_to 'shipment.shipped', async: false
 
     on 'shipment.shipped', :handle_shipment_shipped
 

@@ -1,6 +1,6 @@
 module SpreePlunk
   class ReimbursementSubscriber < Spree::Subscriber
-    subscribes_to 'reimbursement.reimbursed'
+    subscribes_to 'reimbursement.reimbursed', async: false
 
     on 'reimbursement.reimbursed', :handle_reimbursement_reimbursed
 

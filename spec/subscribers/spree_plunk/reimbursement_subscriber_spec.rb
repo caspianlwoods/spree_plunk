@@ -15,6 +15,10 @@ RSpec.describe SpreePlunk::ReimbursementSubscriber do
     clear_enqueued_jobs
   end
 
+  it 'runs synchronously so reimbursement tracking only needs the Plunk job queue' do
+    expect(described_class.subscription_options).to eq(async: false)
+  end
+
   it 'enqueues tracking for reimbursed reimbursements' do
     event = Spree::Event.new(
       name: 'reimbursement.reimbursed',

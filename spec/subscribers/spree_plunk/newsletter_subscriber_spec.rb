@@ -13,6 +13,10 @@ RSpec.describe SpreePlunk::NewsletterSubscriber do
     clear_enqueued_jobs
   end
 
+  it 'runs synchronously so newsletter sync only needs the Plunk job queue' do
+    expect(described_class.subscription_options).to eq(async: false)
+  end
+
   it 'enqueues subscribe and event tracking when a subscriber is verified' do
     newsletter_subscriber = create(:newsletter_subscriber, :verified, email: 'newsletter@example.com')
     event = Spree::Event.new(
